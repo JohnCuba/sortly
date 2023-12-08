@@ -21,4 +21,10 @@ class FileModule {
         .map((event) => File(event.path))
         .toList();
   }
+
+  static renameFile(File file, String newName) async {
+    final path = file.path.substring(0, file.path.lastIndexOf('/') + 1);
+    final fileName = newName + file.path.substring(file.path.lastIndexOf('.'));
+    await file.rename(path + fileName);
+  }
 }

@@ -24,13 +24,14 @@ void main(List<String> arguments) {
         case 'read':
           {
             app.doRead();
-      return;
-    }
-    if (results.wasParsed('version')) {
-      print('sortly version: $version');
-      return;
-    }
-    }
+            return;
+          }
+        case 'rename':
+          {
+            app.doRename();
+            return;
+          }
+      }
     }
   } on FormatException catch (e) {
     // Print usage information if an invalid argument was provided.
