@@ -1,15 +1,28 @@
+import '../config/sort_depth.dart';
 import '../module/file/file.module.dart';
 import '../module/meta_data/meta_data.module.dart';
 
 class App {
   String rootPath = '';
+  SortDepth depth = SortDepth.year;
 
   setPath(String? path) {
     if (path == null) {
       throw 'Path was not provided';
     }
+    if (path.endsWith('/')) {
+      rootPath = path.substring(0, path.length - 1);
+    } else {
+      rootPath = path;
+    }
+  }
 
-    rootPath = path;
+  void setDepth(String? selectedDepth) {
+    if (selectedDepth == null) {
+      throw 'Depth was not provided';
+    }
+
+    depth = SortDepth.values.firstWhere((e) => e.name == selectedDepth);
   }
 
   String _buildFileNameFromDate(DateTime dateTime) {
@@ -32,6 +45,14 @@ class App {
         await FileModule.renameFile(
             element, _buildFileNameFromDate(fileMetaData.date!));
       }
+    });
+  }
+
+  doSort() async {
+    final filesList = await FileModule.getFilesList(rootPath);
+    filesList.forEach((file) async {
+      final fileMetaData = await MetaDataModule.getFileMetaData(file);
+      FileModule.sortFile(rootPath, file, fileMetaData, depth);
     });
   }
 }

@@ -3,3 +3,4 @@
 - Initial version.
 - `read` command
 - `rename` command
+- `sort` command
