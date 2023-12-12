@@ -4,3 +4,8 @@
 - `read` command
 - `rename` command
 - `sort` command
+
+## 0.1.0
+
+- Interactive ui
+- Preview

@@ -1,19 +1,34 @@
+import 'dart:io';
+
+import 'package:dart_console/dart_console.dart';
+import 'package:path/path.dart' as p;
+import 'dart:math' as m;
+
 import '../config/sort_depth.dart';
 import '../module/file/file.module.dart';
 import '../module/meta_data/meta_data.module.dart';
 
 class App {
-  String rootPath = '';
-  SortDepth depth = SortDepth.year;
+  final console = Console();
 
-  setPath(String? path) {
+  String _rootPath = '';
+  SortDepth _depth = SortDepth.year;
+  bool _doRename = false;
+  bool _doSort = false;
+  bool _preview = false;
+
+  List<File> filesList = [];
+  int offset = 0;
+  int get filesPerPageCount => console.windowHeight - 6;
+
+  void setPath(String? path) {
     if (path == null) {
       throw 'Path was not provided';
     }
     if (path.endsWith('/')) {
-      rootPath = path.substring(0, path.length - 1);
+      _rootPath = p.canonicalize(path.substring(0, path.length - 1));
     } else {
-      rootPath = path;
+      _rootPath = p.canonicalize(path);
     }
   }
 
@@ -22,37 +37,135 @@ class App {
       throw 'Depth was not provided';
     }
 
-    depth = SortDepth.values.firstWhere((e) => e.name == selectedDepth);
+    _depth = SortDepth.values.firstWhere((e) => e.name == selectedDepth);
   }
 
-  String _buildFileNameFromDate(DateTime dateTime) {
-    return '${dateTime.toIso8601String().substring(0, 10)}_${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+  void _renderHeader(int filesCount) {
+    console.clearScreen();
+    console.writeLine(
+        'In $_rootPath files finded: $filesCount', TextAlignment.center);
+    console.writeLine('');
   }
 
-  doRead() async {
-    final filesList = await FileModule.getFilesList(rootPath);
-    print('Finded files: ${filesList.length}');
-    filesList
-        .map((e) => e.path.substring(e.path.lastIndexOf('/') + 1))
-        .forEach(print);
+  void _renderPlaceholderEmpty() {
+    console.setForegroundColor(ConsoleColor.red);
+    console.writeLine('Files not found', TextAlignment.center);
+    console.showCursor();
   }
 
-  doRename() async {
-    final filesList = await FileModule.getFilesList(rootPath);
-    filesList.forEach((element) async {
-      final fileMetaData = await MetaDataModule.getFileMetaData(element);
-      if (fileMetaData.date != null) {
-        await FileModule.renameFile(
-            element, _buildFileNameFromDate(fileMetaData.date!));
+  Future<void> _renderEntity(File file, int index, int filesCount) async {
+    final MetaData? fileMetaData =
+        _preview ? await MetaDataModule.getFileMetaData(file) : null;
+    final calculatedPath = FileModule.calculatePath(
+        enabled: _doSort,
+        rootPath: _rootPath,
+        file: file,
+        metaData: fileMetaData,
+        depth: _depth);
+    final calculatedName = FileModule.calculateName(
+        enabled: _doRename, file: file, metaData: fileMetaData);
+
+    final previewSeparator = _preview ? ' -> ' : '';
+    final previewPath = _preview ? '$calculatedPath/$calculatedName' : '';
+    final mainString =
+        '${index + 1}) ${file.path}$previewSeparator$previewPath';
+    final scrollBar = ((index + 1) - offset) ==
+            m.max(1, (filesPerPageCount * offset / filesCount)).round()
+        ? '|'
+        : ' ';
+    final offsetString =
+        ' ' * (console.windowWidth - mainString.length - scrollBar.length - 1);
+    console.writeLine('$mainString$offsetString $scrollBar');
+  }
+
+  void _renderFooter() {
+    console.writeLine('to scroll - use arrows', TextAlignment.center);
+    console.write(' ' * ((console.windowWidth - 51) / 2).round());
+    console.setTextStyle(bold: _preview);
+    console.write('Preview');
+    console.setTextStyle(bold: false);
+    console.write('    ');
+    console.setTextStyle(bold: _doRename);
+    console.write('RRRename');
+    console.setTextStyle(bold: false);
+    console.write('    ');
+    console.setTextStyle(bold: _doSort);
+    console.write('SSSort');
+    console.setTextStyle(bold: false);
+    console.write('    ');
+    console.write('Sort depth: ${_depth.name}');
+  }
+
+  Future<void> fetchFilesList() async {
+    filesList = await FileModule.getFilesList(_rootPath);
+  }
+
+  void init() async {
+    await fetchFilesList();
+    console.hideCursor();
+
+    final int filesPerPageCount = console.windowHeight - 6;
+
+    if (filesList.isEmpty) {
+      _renderPlaceholderEmpty();
+      return;
+    }
+
+    while (offset <= filesList.length) {
+      _renderHeader(filesList.length);
+
+      for (int index = 0 + offset;
+          index < m.min(filesPerPageCount + offset, filesList.length);
+          index++) {
+        await _renderEntity(filesList[index], index, filesList.length);
       }
-    });
+
+      _renderFooter();
+
+      final pressedKey = console.readKey();
+
+      switch (pressedKey.controlChar) {
+        case (ControlCharacter.arrowDown):
+          offset = m.min(offset + 1,
+              filesList.length - m.min(filesPerPageCount, filesList.length));
+        case (ControlCharacter.arrowUp):
+          offset = m.max(offset - 1, 0);
+        case (ControlCharacter.arrowRight):
+          offset = m.min(offset + filesPerPageCount,
+              filesList.length - m.min(filesPerPageCount, filesList.length));
+        case (ControlCharacter.arrowLeft):
+          offset = m.max(offset - filesPerPageCount, 0);
+        case (ControlCharacter.ctrlR):
+          _doRename = !_doRename;
+        case (ControlCharacter.ctrlS):
+          _doSort = !_doSort;
+        case (ControlCharacter.ctrlP):
+          _preview = !_preview;
+        case (ControlCharacter.ctrlO):
+          await operate(filesList);
+          break;
+        default:
+          console.showCursor();
+          return;
+      }
+    }
   }
 
-  doSort() async {
-    final filesList = await FileModule.getFilesList(rootPath);
-    filesList.forEach((file) async {
-      final fileMetaData = await MetaDataModule.getFileMetaData(file);
-      FileModule.sortFile(rootPath, file, fileMetaData, depth);
-    });
+  Future<void> operate(List<File> filesList) async {
+    for (final (_, file) in filesList.indexed) {
+      final MetaData fileMetaData = await MetaDataModule.getFileMetaData(file);
+      final calculatedPath = FileModule.calculatePath(
+          enabled: _doSort,
+          rootPath: _rootPath,
+          file: file,
+          metaData: fileMetaData,
+          depth: _depth);
+      final calculatedName = FileModule.calculateName(
+          enabled: _doRename, file: file, metaData: fileMetaData);
+
+      await FileModule.operateFile(
+          file, _rootPath, calculatedPath, calculatedName);
+      await fetchFilesList();
+    }
   }
 }

@@ -1,6 +1,6 @@
 name: sortly
 description: A sample command-line application with basic argument parsing.
-version: 0.0.1
+version: 0.1.0
 # repository: https://github.com/my_org/my_repo
 
 environment:
@@ -9,6 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   args: ^2.4.2
+  dart_console: ^1.2.0
   exif: ^3.3.0
   path: ^1.9.0
 
