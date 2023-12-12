@@ -68,7 +68,9 @@ class FileModule {
     final path = p.join(
         rootPath,
         metaData!.date!.year.toString(),
-        depth == SortDepth.month ? metaData.date!.month.toString() : null,
+        depth == SortDepth.month || depth == SortDepth.day
+            ? metaData.date!.month.toString()
+            : null,
         depth == SortDepth.day ? metaData.date!.day.toString() : null);
     final pathDirectory = Directory(path);
     return pathDirectory.path;
