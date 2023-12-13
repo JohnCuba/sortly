@@ -46,6 +46,7 @@ class FileModule {
     if (neededDirs.isNotEmpty) {
       for (final (index, _) in neededDirs.indexed) {
         final currPath = neededDirs.sublist(0, index + 1).join('/');
+
         if (!(await Directory('$rootPath/$currPath').exists())) {
           await Directory('$rootPath/$currPath').create();
         }

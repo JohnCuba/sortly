@@ -41,7 +41,6 @@ class App {
   }
 
   void _renderHeader(int filesCount) {
-    console.clearScreen();
     console.writeLine(
         'In $_rootPath files finded: $filesCount', TextAlignment.center);
     console.writeLine('');
@@ -119,6 +118,7 @@ class App {
         _preview = !_preview;
       case (ControlCharacter.ctrlO):
         await operate(filesList);
+        await fetchFilesList();
         break;
       case (ControlCharacter.ctrlD):
         final currentIndex = SortDepth.values.indexOf(_depth);
@@ -142,6 +142,7 @@ class App {
     }
 
     while (offset <= filesList.length) {
+      console.clearScreen();
       _renderHeader(filesList.length);
 
       for (int index = 0 + offset;
@@ -152,7 +153,7 @@ class App {
 
       _renderFooter();
 
-      _listenControl();
+      await _listenControl();
     }
   }
 
@@ -167,10 +168,8 @@ class App {
           depth: _depth);
       final calculatedName = FileModule.calculateName(
           enabled: _doRename, file: file, metaData: fileMetaData);
-
       await FileModule.operateFile(
           file, _rootPath, calculatedPath, calculatedName);
-      await fetchFilesList();
     }
   }
 }
