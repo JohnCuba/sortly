@@ -81,23 +81,53 @@ class App {
   void _renderFooter() {
     console.writeLine('to scroll - use arrows', TextAlignment.center);
     console.write(' ' * ((console.windowWidth - 51) / 2).round());
-    console.setTextStyle(bold: _preview);
-    console.write('Preview');
-    console.setTextStyle(bold: false);
+    console.write(_preview ? '[x]' : '[ ]');
+    console.write(' Preview');
     console.write('    ');
-    console.setTextStyle(bold: _doRename);
-    console.write('RRRename');
-    console.setTextStyle(bold: false);
+    console.write(_doRename ? '[x]' : '[ ]');
+    console.write(' Rename');
     console.write('    ');
-    console.setTextStyle(bold: _doSort);
-    console.write('SSSort');
-    console.setTextStyle(bold: false);
+    console.write(_doSort ? '[x]' : '[ ]');
+    console.write('Sort');
     console.write('    ');
     console.write('Sort depth: ${_depth.name}');
   }
 
   Future<void> fetchFilesList() async {
     filesList = await FileModule.getFilesList(_rootPath);
+  }
+
+  Future<void> _listenControl() async {
+    final pressedKey = console.readKey();
+
+    switch (pressedKey.controlChar) {
+      case (ControlCharacter.arrowDown):
+        offset = m.min(offset + 1,
+            filesList.length - m.min(filesPerPageCount, filesList.length));
+      case (ControlCharacter.arrowUp):
+        offset = m.max(offset - 1, 0);
+      case (ControlCharacter.arrowRight):
+        offset = m.min(offset + filesPerPageCount,
+            filesList.length - m.min(filesPerPageCount, filesList.length));
+      case (ControlCharacter.arrowLeft):
+        offset = m.max(offset - filesPerPageCount, 0);
+      case (ControlCharacter.ctrlR):
+        _doRename = !_doRename;
+      case (ControlCharacter.ctrlS):
+        _doSort = !_doSort;
+      case (ControlCharacter.ctrlP):
+        _preview = !_preview;
+      case (ControlCharacter.ctrlO):
+        await operate(filesList);
+        break;
+      case (ControlCharacter.ctrlD):
+        final currentIndex = SortDepth.values.indexOf(_depth);
+        _depth = SortDepth.values[
+            currentIndex + 1 < SortDepth.values.length ? currentIndex + 1 : 0];
+      default:
+        console.showCursor();
+        return;
+    }
   }
 
   void init() async {
@@ -122,32 +152,7 @@ class App {
 
       _renderFooter();
 
-      final pressedKey = console.readKey();
-
-      switch (pressedKey.controlChar) {
-        case (ControlCharacter.arrowDown):
-          offset = m.min(offset + 1,
-              filesList.length - m.min(filesPerPageCount, filesList.length));
-        case (ControlCharacter.arrowUp):
-          offset = m.max(offset - 1, 0);
-        case (ControlCharacter.arrowRight):
-          offset = m.min(offset + filesPerPageCount,
-              filesList.length - m.min(filesPerPageCount, filesList.length));
-        case (ControlCharacter.arrowLeft):
-          offset = m.max(offset - filesPerPageCount, 0);
-        case (ControlCharacter.ctrlR):
-          _doRename = !_doRename;
-        case (ControlCharacter.ctrlS):
-          _doSort = !_doSort;
-        case (ControlCharacter.ctrlP):
-          _preview = !_preview;
-        case (ControlCharacter.ctrlO):
-          await operate(filesList);
-          break;
-        default:
-          console.showCursor();
-          return;
-      }
+      _listenControl();
     }
   }
 
