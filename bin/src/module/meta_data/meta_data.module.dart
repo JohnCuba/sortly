@@ -1,12 +1,7 @@
 import 'dart:io';
 
 import 'package:exif/exif.dart' as exif;
-
-class MetaData {
-  final DateTime? date;
-
-  MetaData({this.date});
-}
+import 'package:sortly/entities/meta_data.dart';
 
 class MetaDataModule {
   static Future<MetaData> getFileMetaData(File file) async {

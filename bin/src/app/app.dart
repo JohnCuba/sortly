@@ -3,9 +3,13 @@ import 'dart:io';
 import 'package:dart_console/dart_console.dart';
 import 'package:path/path.dart' as p;
 import 'dart:math' as m;
+import 'package:sortly/config/sort_depth.dart';
+import 'package:sortly/entities/meta_data.dart';
+import 'package:sortly/module/file/calculate_name.dart';
+import 'package:sortly/module/file/calculate_path.dart';
+import 'package:sortly/module/file/get_files_list.dart';
+import 'package:sortly/module/file/operate_file.dart';
 
-import '../config/sort_depth.dart';
-import '../module/file/file.module.dart';
 import '../module/meta_data/meta_data.module.dart';
 
 class App {
@@ -55,14 +59,14 @@ class App {
   Future<void> _renderEntity(File file, int index, int filesCount) async {
     final MetaData? fileMetaData =
         _preview ? await MetaDataModule.getFileMetaData(file) : null;
-    final calculatedPath = FileModule.calculatePath(
+    final calculatedPath = calculatePath(
         enabled: _doSort,
         rootPath: _rootPath,
         file: file,
         metaData: fileMetaData,
         depth: _depth);
-    final calculatedName = FileModule.calculateName(
-        enabled: _doRename, file: file, metaData: fileMetaData);
+    final calculatedName =
+        calculateName(enabled: _doRename, file: file, metaData: fileMetaData);
 
     final previewSeparator = _preview ? ' -> ' : '';
     final previewPath = _preview ? '$calculatedPath/$calculatedName' : '';
@@ -93,7 +97,7 @@ class App {
   }
 
   Future<void> fetchFilesList() async {
-    filesList = await FileModule.getFilesList(_rootPath);
+    filesList = await getFilesList(_rootPath);
   }
 
   Future<void> _listenControl() async {
@@ -160,16 +164,15 @@ class App {
   Future<void> operate(List<File> filesList) async {
     for (final (_, file) in filesList.indexed) {
       final MetaData fileMetaData = await MetaDataModule.getFileMetaData(file);
-      final calculatedPath = FileModule.calculatePath(
+      final calculatedPath = calculatePath(
           enabled: _doSort,
           rootPath: _rootPath,
           file: file,
           metaData: fileMetaData,
           depth: _depth);
-      final calculatedName = FileModule.calculateName(
-          enabled: _doRename, file: file, metaData: fileMetaData);
-      await FileModule.operateFile(
-          file, _rootPath, calculatedPath, calculatedName);
+      final calculatedName =
+          calculateName(enabled: _doRename, file: file, metaData: fileMetaData);
+      await operateFile(file, _rootPath, calculatedPath, calculatedName);
     }
   }
 }

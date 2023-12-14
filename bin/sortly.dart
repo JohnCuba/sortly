@@ -1,7 +1,7 @@
 import 'package:args/args.dart';
 
 import 'src/app/app.dart';
-import 'src/config/sort_depth.dart';
+import 'package:sortly/config/sort_depth.dart';
 
 const String version = '0.1.0';
 
