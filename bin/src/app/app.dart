@@ -43,6 +43,14 @@ class App {
     _depth = SortDepth.values.firstWhere((e) => e.name == selectedDepth);
   }
 
+  void toggleRename([String? _]) {
+    _doRename = !_doRename;
+  }
+
+  void toggleSort([String? _]) {
+    _doSort = !_doSort;
+  }
+
   void _renderHeader(int filesCount) {
     console.writeLine(
         'In $_rootPath files finded: $filesCount', TextAlignment.center);
@@ -114,9 +122,9 @@ class App {
       case (ControlCharacter.arrowLeft):
         offset = m.max(offset - filesPerPageCount, 0);
       case (ControlCharacter.ctrlR):
-        _doRename = !_doRename;
+        toggleRename();
       case (ControlCharacter.ctrlS):
-        _doSort = !_doSort;
+        toggleSort();
       case (ControlCharacter.ctrlP):
         _preview = !_preview;
       case (ControlCharacter.ctrlO):
