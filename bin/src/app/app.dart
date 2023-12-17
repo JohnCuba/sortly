@@ -9,8 +9,7 @@ import 'package:sortly/module/file/calculate_name.dart';
 import 'package:sortly/module/file/calculate_path.dart';
 import 'package:sortly/module/file/get_files_list.dart';
 import 'package:sortly/module/file/operate_file.dart';
-
-import '../module/meta_data/meta_data.module.dart';
+import 'package:sortly/module/meta_data/get_file_meta_data.dart';
 
 class App {
   final console = Console();
@@ -58,7 +57,7 @@ class App {
 
   Future<void> _renderEntity(File file, int index, int filesCount) async {
     final MetaData? fileMetaData =
-        _preview ? await MetaDataModule.getFileMetaData(file) : null;
+        _preview ? await getFileMetaData(file) : null;
     final calculatedPath = calculatePath(
         enabled: _doSort,
         rootPath: _rootPath,
@@ -163,7 +162,7 @@ class App {
 
   Future<void> operate(List<File> filesList) async {
     for (final (_, file) in filesList.indexed) {
-      final MetaData fileMetaData = await MetaDataModule.getFileMetaData(file);
+      final MetaData fileMetaData = await getFileMetaData(file);
       final calculatedPath = calculatePath(
           enabled: _doSort,
           rootPath: _rootPath,
