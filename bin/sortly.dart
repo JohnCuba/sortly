@@ -11,9 +11,8 @@ ArgParser buildParser() {
   return ArgParser()
     ..addOption('path',
         abbr: 'p', callback: app.setPath, mandatory: false, defaultsTo: './')
-    ..addOption('rename',
-        abbr: 'r', callback: app.toggleRename, mandatory: false)
-    ..addOption('sort', abbr: 's', callback: app.toggleSort, mandatory: false)
+    ..addFlag('rename', abbr: 'r', callback: app.toggleRename)
+    ..addFlag('sort', abbr: 's', callback: app.toggleSort)
     ..addOption('dept',
         abbr: 'd',
         mandatory: false,

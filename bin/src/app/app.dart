@@ -43,12 +43,12 @@ class App {
     _depth = SortDepth.values.firstWhere((e) => e.name == selectedDepth);
   }
 
-  void toggleRename([String? _]) {
-    _doRename = !_doRename;
+  void toggleRename(bool value) {
+    _doRename = value;
   }
 
-  void toggleSort([String? _]) {
-    _doSort = !_doSort;
+  void toggleSort(bool value) {
+    _doSort = value;
   }
 
   void _renderHeader(int filesCount) {
@@ -122,9 +122,9 @@ class App {
       case (ControlCharacter.arrowLeft):
         offset = m.max(offset - filesPerPageCount, 0);
       case (ControlCharacter.ctrlR):
-        toggleRename();
+        toggleRename(!_doRename);
       case (ControlCharacter.ctrlS):
-        toggleSort();
+        toggleSort(!_doSort);
       case (ControlCharacter.ctrlP):
         _preview = !_preview;
       case (ControlCharacter.ctrlO):
