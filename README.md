@@ -2,7 +2,7 @@
 A simple command-line application to rename and sort your photos by date.
 
 Get stuck with all of this randomly backuped folders of photos from old devices?
-#### Sortly do the thing.
+#### Sortly do the thing. [Download](https://github.com/JohnCuba/sortly/releases)
 
 How to:
   1) Put `sortly` file in or provide flag `-p ./*PATH*` with relative path to root directory of your photos.
