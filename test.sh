@@ -16,4 +16,5 @@ echo "void main() {}" >> "$outputFile"
 
 dart pub global run coverage:test_with_coverage
 genhtml coverage/lcov.info -o coverage/html
+dart pub run test_coverage_badge
 open coverage/html/index.html
